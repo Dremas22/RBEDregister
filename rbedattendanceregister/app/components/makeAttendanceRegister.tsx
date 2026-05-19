@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Attendee = {
   name: string;
@@ -26,28 +26,57 @@ export default function AttendanceRegister() {
     useState<AttendanceRegister | null>(null);
 
   /**
-   * CREATE REGISTER
+   * LOAD REGISTERS FROM FIREBASE
    */
-  const handleSave = () => {
-    if (!name.trim() || !location.trim()) return;
-
-    const newRegister: AttendanceRegister = {
-      id: crypto.randomUUID(),
-      name,
-      location,
-      date: new Date().toISOString(),
-      attendees: [],
+  useEffect(() => {
+    const fetchRegisters = async () => {
+      try {
+        const res = await fetch("/api/registers");
+        const data = await res.json();
+        setRegisters(data);
+      } catch (err) {
+        console.log("Failed to load registers", err);
+      }
     };
 
-    setRegisters((prev) => [newRegister, ...prev]);
+    fetchRegisters();
+  }, []);
 
-    setName("");
-    setLocation("");
-    setShowForm(false);
+  /**
+   * CREATE REGISTER (API + FIREBASE)
+   */
+  const handleSave = async () => {
+    if (!name.trim() || !location.trim()) return;
+
+    try {
+      const res = await fetch("/api/registers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, location }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.log(data.error);
+        return;
+      }
+
+      setRegisters((prev) => [data, ...prev]);
+
+      setName("");
+      setLocation("");
+      setShowForm(false);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   /**
-   * DELETE REGISTER
+   * DELETE (LOCAL ONLY FOR NOW)
+   * (You can later connect Firebase delete API)
    */
   const handleDelete = (id: string) => {
     setRegisters((prev) => prev.filter((r) => r.id !== id));
@@ -60,9 +89,12 @@ export default function AttendanceRegister() {
   /**
    * VIEW REGISTER
    */
-  const handleView = (register: AttendanceRegister) => {
-    setSelectedRegister(register);
-  };
+  const handleView = async (register: AttendanceRegister) => {
+  const res = await fetch(`/api/registers/${register.id}`);
+  const data = await res.json();
+
+  setSelectedRegister(data);
+};
 
   return (
     <div className="p-6">
@@ -120,13 +152,12 @@ export default function AttendanceRegister() {
             <p className="text-xs mt-2">📍 {reg.location}</p>
 
             <p className="mt-2 text-blue-600">
-              Attendees: {reg.attendees.length}
+              Attendees: {reg.attendees?.length ?? 0}
             </p>
 
             {/* ACTIONS */}
             <div className="flex gap-2 mt-3">
-              
-              {/* VIEW */}
+
               <button
                 onClick={() => handleView(reg)}
                 className="bg-gray-800 text-white px-3 py-1 text-sm rounded"
@@ -134,7 +165,6 @@ export default function AttendanceRegister() {
                 View
               </button>
 
-              {/* DELETE */}
               <button
                 onClick={() => handleDelete(reg.id)}
                 className="bg-red-600 text-white px-3 py-1 text-sm rounded"
@@ -147,44 +177,55 @@ export default function AttendanceRegister() {
         ))}
       </div>
 
-      {/* MORE */}
-      {registers.length > 20 && (
-        <button className="mt-4 text-blue-600 underline">
-          View More
-        </button>
-      )}
-
-      {/* VIEW PANEL */}
+      {/* VIEW MODAL */}
       {selectedRegister && (
-        <div className="mt-8 p-4 border rounded bg-white shadow">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
 
-          <h2 className="text-xl font-bold">
-            {selectedRegister.name}
-          </h2>
+          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
 
-          <p className="text-sm text-gray-500">
-            📍 {selectedRegister.location}
-          </p>
+            {/* CLOSE */}
+            <button
+              onClick={() => setSelectedRegister(null)}
+              className="absolute right-4 top-4 text-xl text-gray-500 hover:text-black"
+            >
+              ✕
+            </button>
 
-          <p className="text-sm text-gray-500 mb-4">
-            {new Date(selectedRegister.date).toLocaleDateString()}
-          </p>
+            <h2 className="text-2xl font-bold">
+              {selectedRegister.name}
+            </h2>
 
-          {/* EMPTY STATE */}
-          {selectedRegister.attendees.length === 0 ? (
-            <p className="text-gray-500 italic">
-              No one checked in yet
+            <p className="mt-1 text-sm text-gray-500">
+              📍 {selectedRegister.location}
             </p>
-          ) : (
-            <ul className="space-y-2">
-              {selectedRegister.attendees.map((a, index) => (
-                <li key={index} className="border p-2 rounded">
-                  {a.name} — {a.time}
-                </li>
-              ))}
-            </ul>
-          )}
 
+            <p className="mb-6 text-sm text-gray-500">
+              {new Date(selectedRegister.date).toLocaleDateString()}
+            </p>
+
+            {/* EMPTY STATE */}
+            {!selectedRegister.attendees ||
+            selectedRegister.attendees.length === 0 ? (
+              <div className="rounded-lg border border-dashed bg-gray-50 p-6 text-center">
+                <p className="text-lg italic text-gray-500">
+                  No one checked in yet
+                </p>
+              </div>
+            ) : (
+              <ul className="max-h-[300px] space-y-2 overflow-y-auto">
+                {selectedRegister.attendees.map((a, index) => (
+                  <li
+                    key={index}
+                    className="rounded-lg border bg-gray-50 p-3"
+                  >
+                    <p className="font-medium">{a.name}</p>
+                    <p className="text-sm text-gray-500">{a.time}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+          </div>
         </div>
       )}
 
