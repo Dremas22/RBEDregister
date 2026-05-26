@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import QRCode from "react-qr-code";
+import { v4 as uuidv4 } from "uuid";  
 
 type Attendee = {
   name: string;
@@ -12,6 +14,7 @@ type AttendanceRegister = {
   name: string;
   date: string;
   location: string;
+  link?: string;
   attendees: Attendee[];
 };
 
@@ -43,68 +46,104 @@ export default function AttendanceRegister() {
   }, []);
 
   /**
-   * CREATE REGISTER (API + FIREBASE)
+   * CREATE REGISTER
    */
   const handleSave = async () => {
-    if (!name.trim() || !location.trim()) return;
+  if (!name.trim() || !location.trim()) return;
 
-    try {
-      const res = await fetch("/api/registers", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name, location }),
-      });
+  try {
+    const res = await fetch("/api/registers", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name,
+        location,
+      }),
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (!res.ok) {
-        console.log(data.error);
-        return;
-      }
-
-      setRegisters((prev) => [data, ...prev]);
-
-      setName("");
-      setLocation("");
-      setShowForm(false);
-    } catch (err) {
-      console.log(err);
+    if (!res.ok) {
+      console.log(data.error);
+      return;
     }
-  };
 
+    const link = `${window.location.origin}/attendance/${data.id}`;
+
+    setRegisters((prev) => [
+      { ...data, link },
+      ...prev,
+    ]);
+
+    setName("");
+    setLocation("");
+    setShowForm(false);
+
+  } catch (err) {
+    console.log(err);
+  }
+};
   /**
-   * DELETE (LOCAL ONLY FOR NOW)
-   * (You can later connect Firebase delete API)
+   * DELETE (LOCAL ONLY)
    */
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+  try {
+    const res = await fetch(`/api/registers/${id}`, {
+      method: "DELETE",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.log(data.error || "Failed to delete register");
+      return;
+    }
+
+    // REMOVE FROM UI
     setRegisters((prev) => prev.filter((r) => r.id !== id));
 
+    // CLOSE MODAL IF OPEN
     if (selectedRegister?.id === id) {
       setSelectedRegister(null);
     }
-  };
+
+  } catch (error) {
+    console.log("Delete error:", error);
+  }
+};
 
   /**
    * VIEW REGISTER
    */
-  const handleView = async (register: AttendanceRegister) => {
-  const res = await fetch(`/api/registers/${register.id}`);
-  const data = await res.json();
+  const handleViewAttendeesRegistered = async (
+    register: AttendanceRegister
+  ) => {
+    try {
+      const res = await fetch(`/api/registers/${register.id}`);
 
-  setSelectedRegister(data);
-};
+      if (!res.ok) {
+        console.error("Failed to load register:", res.status);
+        return;
+      }
+
+      const data = await res.json();
+      setSelectedRegister(data);
+    } catch (error) {
+      console.error("Error fetching register:", error);
+    }
+  };
 
   return (
     <div className="p-6">
 
-      {/* ADD BUTTON */}
+      {/* CREATE BUTTON */}
       <button
         onClick={() => setShowForm(true)}
-        className="bg-blue-600 text-white px-4 py-2 rounded"
+        className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
       >
-        + Add Register
+        + Create Event Register
       </button>
 
       {/* FORM */}
@@ -113,7 +152,7 @@ export default function AttendanceRegister() {
 
           <input
             type="text"
-            placeholder="Register Name"
+            placeholder="Event Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="border p-2 w-full mb-3"
@@ -129,9 +168,16 @@ export default function AttendanceRegister() {
 
           <button
             onClick={handleSave}
-            className="bg-green-600 text-white px-4 py-2 rounded"
+            className="bg-green-600 text-white px-4 py-2 rounded cursor-pointer"
           >
             Save Register
+          </button>
+
+          <button
+            onClick={() => setShowForm(false)}
+            className="ml-2 bg-gray-600 text-white px-4 py-2 rounded cursor-pointer"
+          >
+            Cancel
           </button>
         </div>
       )}
@@ -155,35 +201,57 @@ export default function AttendanceRegister() {
               Attendees: {reg.attendees?.length ?? 0}
             </p>
 
+            {/* QR CODE + LINK */}
+            {reg.link && (
+              <div className="mt-3 flex flex-col items-start">
+                <QRCode
+                  value={reg.link}
+                  size={80}
+                />
+
+                <p className="text-xs mt-2 text-gray-500 break-all">
+                  {reg.link}
+                </p>
+
+                <button
+                  onClick={() =>
+                    navigator.clipboard.writeText(reg.link!)
+                  }
+                  className="text-xs mt-2 bg-gray-400 px-2 py-1 rounded cursor-pointer cursor-pointer"
+                >
+                  Copy Link
+                </button>
+              </div>
+            )}
+
             {/* ACTIONS */}
             <div className="flex gap-2 mt-3">
-
               <button
-                onClick={() => handleView(reg)}
-                className="bg-gray-800 text-white px-3 py-1 text-sm rounded"
+                onClick={() =>
+                  handleViewAttendeesRegistered(reg)
+                }
+                className="bg-gray-800 text-white px-3 py-1 text-sm rounded cursor-pointer"
               >
-                View
+                View Attendees
               </button>
 
               <button
                 onClick={() => handleDelete(reg.id)}
-                className="bg-red-600 text-white px-3 py-1 text-sm rounded"
+                className="bg-red-600 text-white px-3 py-1 text-sm rounded cursor-pointer"
               >
                 Delete
               </button>
-
             </div>
           </div>
         ))}
       </div>
 
-      {/* VIEW MODAL */}
+      {/* MODAL */}
       {selectedRegister && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
 
           <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
 
-            {/* CLOSE */}
             <button
               onClick={() => setSelectedRegister(null)}
               className="absolute right-4 top-4 text-xl text-gray-500 hover:text-black"
@@ -203,7 +271,6 @@ export default function AttendanceRegister() {
               {new Date(selectedRegister.date).toLocaleDateString()}
             </p>
 
-            {/* EMPTY STATE */}
             {!selectedRegister.attendees ||
             selectedRegister.attendees.length === 0 ? (
               <div className="rounded-lg border border-dashed bg-gray-50 p-6 text-center">
@@ -219,7 +286,9 @@ export default function AttendanceRegister() {
                     className="rounded-lg border bg-gray-50 p-3"
                   >
                     <p className="font-medium">{a.name}</p>
-                    <p className="text-sm text-gray-500">{a.time}</p>
+                    <p className="text-sm text-gray-500">
+                      {a.time}
+                    </p>
                   </li>
                 ))}
               </ul>
