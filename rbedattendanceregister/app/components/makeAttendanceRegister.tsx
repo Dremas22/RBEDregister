@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
-import { v4 as uuidv4 } from "uuid";  
+import CheckAttendees from "./checkAttendees";
+import { v4 as uuidv4 } from "uuid";
 
 type Attendee = {
   name: string;
@@ -24,6 +25,7 @@ export default function AttendanceRegister() {
 
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
+ const [selectedRegisterId, setSelectedRegisterId] = useState<string | null>(null);
 
   const [selectedRegister, setSelectedRegister] =
     useState<AttendanceRegister | null>(null);
@@ -49,95 +51,79 @@ export default function AttendanceRegister() {
    * CREATE REGISTER
    */
   const handleSave = async () => {
-  if (!name.trim() || !location.trim()) return;
+    if (!name.trim() || !location.trim()) return;
 
-  try {
-    const res = await fetch("/api/registers", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name,
-        location,
-      }),
-    });
+    try {
+      const res = await fetch("/api/registers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          location,
+        }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      console.log(data.error);
-      return;
+      if (!res.ok) {
+        console.log(data.error);
+        return;
+      }
+
+      const link = `${window.location.origin}/attendance/${data.id}`;
+
+      setRegisters((prev) => [{ ...data, link }, ...prev]);
+
+      setName("");
+      setLocation("");
+      setShowForm(false);
+    } catch (err) {
+      console.log(err);
     }
-
-    const link = `${window.location.origin}/attendance/${data.id}`;
-
-    setRegisters((prev) => [
-      { ...data, link },
-      ...prev,
-    ]);
-
-    setName("");
-    setLocation("");
-    setShowForm(false);
-
-  } catch (err) {
-    console.log(err);
-  }
+  };
+  /**
+ SelectedRegisterId(registerId);
 };
+
   /**
    * DELETE (LOCAL ONLY)
    */
   const handleDelete = async (id: string) => {
-  try {
-    const res = await fetch(`/api/registers/${id}`, {
-      method: "DELETE",
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.log(data.error || "Failed to delete register");
-      return;
-    }
-
-    // REMOVE FROM UI
-    setRegisters((prev) => prev.filter((r) => r.id !== id));
-
-    // CLOSE MODAL IF OPEN
-    if (selectedRegister?.id === id) {
-      setSelectedRegister(null);
-    }
-
-  } catch (error) {
-    console.log("Delete error:", error);
-  }
-};
-
-  /**
-   * VIEW REGISTER
-   */
-  const handleViewAttendeesRegistered = async (
-    register: AttendanceRegister
-  ) => {
     try {
-      const res = await fetch(`/api/registers/${register.id}`);
+      const res = await fetch(`/api/registers/${id}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
 
       if (!res.ok) {
-        console.error("Failed to load register:", res.status);
+        console.log(data.error || "Failed to delete register");
         return;
       }
 
-      const data = await res.json();
-      setSelectedRegister(data);
+      // REMOVE FROM UI
+      setRegisters((prev) => prev.filter((r) => r.id !== id));
+
+      // CLOSE MODAL IF OPEN
+      if (selectedRegister?.id === id) {
+        setSelectedRegister(null);
+      }
     } catch (error) {
-      console.error("Error fetching register:", error);
+      console.log("Delete error:", error);
     }
   };
 
+  /**
+   * VIEW ATTENDEEs
+   */
+  const handleViewAttendees = (registerId: string) => {
+  setSelectedRegisterId(registerId);
+};
+
   return (
     <div className="p-6">
-
       {/* CREATE BUTTON */}
       <button
         onClick={() => setShowForm(true)}
@@ -149,7 +135,6 @@ export default function AttendanceRegister() {
       {/* FORM */}
       {showForm && (
         <div className="mt-4 p-4 border rounded bg-white shadow">
-
           <input
             type="text"
             placeholder="Event Name"
@@ -204,19 +189,14 @@ export default function AttendanceRegister() {
             {/* QR CODE + LINK */}
             {reg.link && (
               <div className="mt-3 flex flex-col items-start">
-                <QRCode
-                  value={reg.link}
-                  size={80}
-                />
+                <QRCode value={reg.link} size={80} />
 
                 <p className="text-xs mt-2 text-gray-500 break-all">
                   {reg.link}
                 </p>
 
                 <button
-                  onClick={() =>
-                    navigator.clipboard.writeText(reg.link!)
-                  }
+                  onClick={() => navigator.clipboard.writeText(reg.link!)}
                   className="text-xs mt-2 bg-gray-400 px-2 py-1 rounded cursor-pointer cursor-pointer"
                 >
                   Copy Link
@@ -227,9 +207,7 @@ export default function AttendanceRegister() {
             {/* ACTIONS */}
             <div className="flex gap-2 mt-3">
               <button
-                onClick={() =>
-                  handleViewAttendeesRegistered(reg)
-                }
+                onClick={() => handleViewAttendees(reg.id)}
                 className="bg-gray-800 text-white px-3 py-1 text-sm rounded cursor-pointer"
               >
                 View Attendees
@@ -246,12 +224,28 @@ export default function AttendanceRegister() {
         ))}
       </div>
 
+      {selectedRegisterId && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    
+    <div className="relative w-full max-w-4xl rounded-2xl bg-white p-6 shadow-2xl">
+
+      <button
+        onClick={() => setSelectedRegisterId(null)}
+        className="absolute right-4 top-4 text-xl text-gray-500 hover:text-black"
+      >
+        ✕
+      </button>
+
+      <CheckAttendees registerId={selectedRegisterId} />
+
+    </div>
+  </div>
+)}
+
       {/* MODAL */}
       {selectedRegister && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-
           <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
-
             <button
               onClick={() => setSelectedRegister(null)}
               className="absolute right-4 top-4 text-xl text-gray-500 hover:text-black"
@@ -259,9 +253,7 @@ export default function AttendanceRegister() {
               ✕
             </button>
 
-            <h2 className="text-2xl font-bold">
-              {selectedRegister.name}
-            </h2>
+            <h2 className="text-2xl font-bold">{selectedRegister.name}</h2>
 
             <p className="mt-1 text-sm text-gray-500">
               📍 {selectedRegister.location}
@@ -281,23 +273,16 @@ export default function AttendanceRegister() {
             ) : (
               <ul className="max-h-[300px] space-y-2 overflow-y-auto">
                 {selectedRegister.attendees.map((a, index) => (
-                  <li
-                    key={index}
-                    className="rounded-lg border bg-gray-50 p-3"
-                  >
+                  <li key={index} className="rounded-lg border bg-gray-50 p-3">
                     <p className="font-medium">{a.name}</p>
-                    <p className="text-sm text-gray-500">
-                      {a.time}
-                    </p>
+                    <p className="text-sm text-gray-500">{a.time}</p>
                   </li>
                 ))}
               </ul>
             )}
-
           </div>
         </div>
       )}
-
     </div>
   );
 }
