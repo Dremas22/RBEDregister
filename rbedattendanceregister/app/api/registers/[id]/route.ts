@@ -1,21 +1,29 @@
 import { adminDb } from "@/app/lib/firebase-admin";
 
-export async function GET(req: Request, context: any) {
+/**
+ * GET REGISTER + ATTENDEES
+ */
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = await context.params;
+    const { id } = await params;
 
-    const registerRef = adminDb.collection("registers").doc(id);
-    const registerDoc = await registerRef.get();
+    // REGISTER
+    const docRef = adminDb.collection("registers").doc(id);
+    const docSnap = await docRef.get();
 
-    if (!registerDoc.exists) {
+    if (!docSnap.exists) {
       return Response.json(
         { error: "Register not found" },
         { status: 404 }
       );
     }
 
+    // ATTENDEES
     const attendeesSnap = await adminDb
-      .collection("attendees")
+      .collection("attendees") // ✅ FIXED
       .where("registerId", "==", id)
       .get();
 
@@ -25,13 +33,49 @@ export async function GET(req: Request, context: any) {
     }));
 
     return Response.json({
-      id: registerDoc.id,
-      ...registerDoc.data(),
+      id: docSnap.id,
+      ...docSnap.data(),
       attendees,
     });
   } catch (error) {
+    console.log(error);
+
     return Response.json(
       { error: "Failed to fetch register" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE REGISTER
+ */
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    const docRef = adminDb.collection("registers").doc(id);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists) {
+      return Response.json(
+        { error: "Register not found" },
+        { status: 404 }
+      );
+    }
+
+    await docRef.delete();
+
+    return Response.json({
+      success: true,
+      message: "Register deleted successfully",
+    });
+  } catch (error) {
+    return Response.json(
+      { error: "Failed to delete register" },
       { status: 500 }
     );
   }
