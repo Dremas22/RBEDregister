@@ -15,6 +15,8 @@ type Attendee = {
 
 type Props = {
   registerId: string;
+  name: string;
+  date: string;
 };
 
 const CheckAttendees = ({ registerId }: Props) => {
@@ -22,37 +24,55 @@ const CheckAttendees = ({ registerId }: Props) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [registerInfo, setRegisterInfo] = useState<{
+    name: string;
+    date: string;
+  } | null>(null);
+
   useEffect(() => {
     if (!registerId) return;
     fetchAttendees();
   }, [registerId]);
 
   const fetchAttendees = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  try {
+    setLoading(true);
+    setError(null);
 
-      const res = await fetch(`/api/registers/${registerId}`);
-      const data = await res.json();
+    const res = await fetch(`/api/registers/${registerId}`);
+    const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data?.error || "Failed to fetch attendees");
-      }
-
-      setAttendees(data.attendees || []);
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Something went wrong");
-    } finally {
-      setLoading(false);
+    if (!res.ok) {
+      throw new Error(data?.error || "Failed to fetch attendees");
     }
-  };
+
+    setAttendees(data.attendees || []);
+
+    // 🔥 THIS IS THE MISSING PIECE
+    setRegisterInfo({
+      name: data.name,
+      date: data.date,
+    });
+
+  } catch (err: any) {
+    console.error(err);
+    setError(err.message || "Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">
-        Attendance Register
-      </h1>
+      <h1 className="text-5xl font-bold">
+          {registerInfo?.name || "Loading event..."}
+        </h1>
+
+        <p className="text-gray-500">
+          {registerInfo?.date
+              ? new Date(registerInfo.date).toLocaleDateString()
+              : ""}
+        </p>
 
       {/* LOADING STATE */}
       {loading && (

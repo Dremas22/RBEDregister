@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 
 type Props = {
   registerId: string;
+  name: string;
+  date: string;
 };
 
 type Attendee = {
@@ -16,10 +18,16 @@ type Attendee = {
   time: string;
 };
 
-export default function AttendeesRegistered({ registerId }: Props) {
+export default function AttendeesRegistered({ registerId, name }: Props) {
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showTable, setShowTable] = useState(true);
+  const [showTable, setShowTable] = useState(false);
+  const [showForm, setShowForm] = useState(true);
+
+  const [registerInfo, setRegisterInfo] = useState<{
+    name: string;
+    date: string;
+  } | null>(null);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -50,7 +58,14 @@ export default function AttendeesRegistered({ registerId }: Props) {
         return;
       }
 
+      // ✅ store attendees
       setAttendees(data.attendees || []);
+
+      // ✅ store register metadata (name + date)
+      setRegisterInfo({
+        name: data.name,
+        date: data.date,
+      });
     } catch (error) {
       console.log("Fetch error:", error);
     } finally {
@@ -69,16 +84,13 @@ export default function AttendeesRegistered({ registerId }: Props) {
     };
 
     try {
-      const res = await fetch(
-        `/api/registers/${registerId}/attendees`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(attendee),
-        }
-      );
+      const res = await fetch(`/api/registers/${registerId}/attendees`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(attendee),
+      });
 
       if (!res.ok) {
         console.log("Failed to save attendee");
@@ -95,7 +107,7 @@ export default function AttendeesRegistered({ registerId }: Props) {
         cellNumber: "",
         status: "Present",
       });
-
+setShowForm(false);
       setShowTable(true);
     } catch (error) {
       console.log("Save error:", error);
@@ -105,10 +117,17 @@ export default function AttendeesRegistered({ registerId }: Props) {
   return (
     <div className="max-w-4xl mx-auto">
       {/* FORM */}
-      <div className="bg-white p-6 rounded shadow">
-        <h1 className="text-2xl font-bold mb-6">
-          Attendance Check-In
+      {showForm && (
+        <div className="bg-white p-6 rounded shadow">
+        <h1 className="text-5xl font-bold">
+          {registerInfo?.name || "Loading event..."}
         </h1>
+
+        <p className="text-gray-500">
+          {registerInfo?.date
+              ? new Date(registerInfo.date).toLocaleDateString()
+              : ""}
+        </p>
 
         <div className="grid gap-4">
           <input
@@ -175,16 +194,24 @@ export default function AttendeesRegistered({ registerId }: Props) {
           </button>
         </div>
       </div>
+      )}
 
       {/* TABLE */}
       {showTable && (
         <div className="mt-8">
+          <h1 className="text-3xl font-bold">
+            {registerInfo?.name || "Loading event..."}
+          </h1>
+
+          <p className="text-gray-500">
+            {registerInfo?.date
+              ? new Date(registerInfo.date).toLocaleDateString()
+              : ""}
+          </p>
           {loading ? (
             <p>Loading...</p>
           ) : attendees.length === 0 ? (
-            <p className="italic text-gray-500">
-              No attendees yet.
-            </p>
+            <p className="italic text-gray-500">No attendees yet.</p>
           ) : (
             <table className="w-full border">
               <thead>

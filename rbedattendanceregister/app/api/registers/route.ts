@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { adminDb } from "../../lib/firebase-admin";
+import { formatDate } from "@/app/lib/formatDate";
 
 // GET → fetch all registers (NO attendees needed)
 export async function GET() {
@@ -13,7 +14,7 @@ export async function GET() {
         id: doc.id,
         name: d.name,
         location: d.location,
-        date: d.date,
+        date: formatDate(d.date),
         attendeesCount: d.attendees ? d.attendees.length : 0,
       };
     });

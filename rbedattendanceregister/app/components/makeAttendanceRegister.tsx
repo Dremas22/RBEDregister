@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import CheckAttendees from "./checkAttendees";
-import { v4 as uuidv4 } from "uuid";
+import { registerVersion } from "firebase/app";
+import { formatDate } from "@/app/lib/formatDate";
 
 type Attendee = {
   name: string;
   time: string;
+  date: string;
 };
 
 type AttendanceRegister = {
@@ -236,7 +238,7 @@ export default function AttendanceRegister() {
         ✕
       </button>
 
-      <CheckAttendees registerId={selectedRegisterId} />
+      <CheckAttendees registerId={selectedRegisterId}  />
 
     </div>
   </div>
