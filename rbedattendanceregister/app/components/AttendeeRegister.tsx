@@ -119,15 +119,17 @@ setShowForm(false);
       {/* FORM */}
       {showForm && (
         <div className="bg-white p-6 rounded shadow">
-        <h1 className="text-5xl font-bold">
+          <div className="flex items-center gap-4 mb-6">
+        <h1 style={{ fontSize: "26px" }} className="text-5xl font-bold">
           {registerInfo?.name || "Loading event..."}
         </h1>
 
-        <p className="text-gray-500">
+        <p style={{ fontSize: "26px" }} className="text-gray-500">
           {registerInfo?.date
               ? new Date(registerInfo.date).toLocaleDateString()
               : ""}
         </p>
+        </div>
 
         <div className="grid gap-4">
           <input
@@ -199,6 +201,98 @@ setShowForm(false);
       {/* TABLE */}
       {showTable && (
         <div className="mt-8">
+          {/* TABLE */}
+      {showTable && (
+        <div className="mt-8">
+          {/* TABLE */}
+      {showTable && (
+        <div className="mt-8">
+          <div className="flex items-center gap-4 mb-6">
+            <h1  style={{ fontSize: "26px" }} className="font-bold text-blue-600">
+              {registerInfo?.name || "Loading event..."}
+            </h1>
+
+          <p  style={{ fontSize: "26px" }} className="font-bold text-blue-600">
+            {registerInfo?.date
+              ? new Date(registerInfo.date).toLocaleDateString()
+              : ""}
+          </p>
+           </div>
+          {loading ? (
+            <p>Loading...</p>
+          ) : attendees.length === 0 ? (
+            <p className="italic text-gray-500">No attendees yet.</p>
+          ) : (
+            <table className="w-full border">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border p-2">Name</th>
+                  <th className="border p-2">Company</th>
+                  <th className="border p-2">Region</th>
+                  <th className="border p-2">Email</th>
+                  <th className="border p-2">Cell</th>
+                  <th className="border p-2">Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {attendees.map((a, i) => (
+                  <tr key={i}>
+                    <td className="border p-2">{a.fullName}</td>
+                    <td className="border p-2">{a.companyName}</td>
+                    <td className="border p-2">{a.region}</td>
+                    <td className="border p-2">{a.email}</td>
+                    <td className="border p-2">{a.cellNumber}</td>
+                    <td className="border p-2">{a.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+          <h1 className="text-3xl font-bold">
+            {registerInfo?.name || "Loading event..."}
+          </h1>
+
+          <p className="text-gray-500">
+            {registerInfo?.date
+              ? new Date(registerInfo.date).toLocaleDateString()
+              : ""}
+          </p>
+          {loading ? (
+            <p>Loading...</p>
+          ) : attendees.length === 0 ? (
+            <p className="italic text-gray-500">No attendees yet.</p>
+          ) : (
+            <table className="w-full border">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border p-2">Name</th>
+                  <th className="border p-2">Company</th>
+                  <th className="border p-2">Region</th>
+                  <th className="border p-2">Email</th>
+                  <th className="border p-2">Cell</th>
+                  <th className="border p-2">Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {attendees.map((a, i) => (
+                  <tr key={i}>
+                    <td className="border p-2">{a.fullName}</td>
+                    <td className="border p-2">{a.companyName}</td>
+                    <td className="border p-2">{a.region}</td>
+                    <td className="border p-2">{a.email}</td>
+                    <td className="border p-2">{a.cellNumber}</td>
+                    <td className="border p-2">{a.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
           <h1 className="text-3xl font-bold">
             {registerInfo?.name || "Loading event..."}
           </h1>

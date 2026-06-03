@@ -35,55 +35,51 @@ const CheckAttendees = ({ registerId }: Props) => {
   }, [registerId]);
 
   const fetchAttendees = async () => {
-  try {
-    setLoading(true);
-    setError(null);
+    try {
+      setLoading(true);
+      setError(null);
 
-    const res = await fetch(`/api/registers/${registerId}`);
-    const data = await res.json();
+      const res = await fetch(`/api/registers/${registerId}`);
+      const data = await res.json();
 
-    if (!res.ok) {
-      throw new Error(data?.error || "Failed to fetch attendees");
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to fetch attendees");
+      }
+
+      setAttendees(data.attendees || []);
+
+      // 🔥 THIS IS THE MISSING PIECE
+      setRegisterInfo({
+        name: data.name,
+        date: data.date,
+      });
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
     }
-
-    setAttendees(data.attendees || []);
-
-    // 🔥 THIS IS THE MISSING PIECE
-    setRegisterInfo({
-      name: data.name,
-      date: data.date,
-    });
-
-  } catch (err: any) {
-    console.error(err);
-    setError(err.message || "Something went wrong");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
-    <div className="p-4">
-      <h1 className="text-5xl font-bold">
+    <div className="p-2">
+      <div className="flex items-center  gap-4 mb-6">
+        <h1 style={{ fontSize: "26px" }} className="font-bold text-blue-600">
           {registerInfo?.name || "Loading event..."}
-        </h1>
+          </h1>
 
-        <p className="text-gray-500">
+        <p  style={{ fontSize: "24px" }} className="font-bold text-blue-600">
           {registerInfo?.date
-              ? new Date(registerInfo.date).toLocaleDateString()
-              : ""}
+            ? new Date(registerInfo.date).toLocaleDateString()
+            : ""}
         </p>
-
+      </div>
       {/* LOADING STATE */}
-      {loading && (
-        <div className="text-gray-500">Loading attendees...</div>
-      )}
+      {loading && <div className="text-gray-500">Loading attendees...</div>}
 
       {/* ERROR STATE */}
       {error && (
-        <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
-          {error}
-        </div>
+        <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>
       )}
 
       {/* EMPTY STATE */}
