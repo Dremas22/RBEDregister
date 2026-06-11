@@ -23,7 +23,7 @@ export async function GET() {
   } catch (err) {
     return NextResponse.json(
       { error: "Failed to fetch registers" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -31,20 +31,24 @@ export async function GET() {
 // POST → create register
 export async function POST(req: Request) {
   try {
-    const { name, location } = await req.json();
+    const { name, location, eventDuration } = await req.json();
 
-    if (!name || !location) {
+    if (!name || !location || !eventDuration) {
+      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    }
+
+    if (eventDuration < 1 || eventDuration > 8) {
       return NextResponse.json(
-        { error: "Missing fields" },
-        { status: 400 }
+        { error: "Duration must be between 1 and 8 hours" },
+        { status: 400 },
       );
     }
 
     const ref = await adminDb.collection("registers").add({
       name,
       location,
+      eventDuration,
       date: new Date(),
-      attendees: [],
     });
 
     return NextResponse.json({
@@ -57,7 +61,7 @@ export async function POST(req: Request) {
   } catch (err) {
     return NextResponse.json(
       { error: "Failed to create register" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

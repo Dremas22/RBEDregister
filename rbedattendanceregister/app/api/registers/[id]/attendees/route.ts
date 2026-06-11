@@ -11,10 +11,7 @@ export async function POST(req: Request, context: any) {
     const registerDoc = await registerRef.get();
 
     if (!registerDoc.exists) {
-      return Response.json(
-        { error: "Register not found" },
-        { status: 404 }
-      );
+      return Response.json({ error: "Register not found" }, { status: 404 });
     }
 
     const attendee = {
@@ -24,14 +21,16 @@ export async function POST(req: Request, context: any) {
       region: body.region,
       email: body.email,
       cellNumber: body.cellNumber,
-      status: body.status,
       time: new Date().toLocaleTimeString(),
       createdAt: new Date().toISOString(),
+      attendedMinutes: 0,
+      status: "COUNTING",
+      graceMinutes: 5,
+
+      isInsideLocation: true,
     };
 
-    const docRef = await adminDb
-      .collection("attendees")
-      .add(attendee);
+    const docRef = await adminDb.collection("attendees").add(attendee);
 
     return Response.json({
       success: true,
@@ -39,8 +38,28 @@ export async function POST(req: Request, context: any) {
       attendee,
     });
   } catch (error) {
+    return Response.json({ error: "Failed to save attendee" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  req: Request,
+  context: any
+) {
+  try {
+    const { id } = await context.params;
+
+    await adminDb
+      .collection("attendees")
+      .doc(id)
+      .delete();
+
+    return Response.json({
+      success: true,
+    });
+  } catch (error) {
     return Response.json(
-      { error: "Failed to save attendee" },
+      { error: "Failed to delete attendee" },
       { status: 500 }
     );
   }

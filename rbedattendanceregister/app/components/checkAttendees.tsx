@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AttendanceStatusTimer from "./AttendeeStatusTimer";
 
 type Attendee = {
-  id?: string;
+  id: string;
   fullName: string;
   companyName: string;
   region: string;
@@ -66,9 +67,9 @@ const CheckAttendees = ({ registerId }: Props) => {
       <div className="flex items-center  gap-4 mb-6">
         <h1 style={{ fontSize: "26px" }} className="font-bold text-blue-600">
           {registerInfo?.name || "Loading event..."}
-          </h1>
+        </h1>
 
-        <p  style={{ fontSize: "24px" }} className="font-bold text-blue-600">
+        <p style={{ fontSize: "24px" }} className="font-bold text-blue-600">
           {registerInfo?.date
             ? new Date(registerInfo.date).toLocaleDateString()
             : ""}
@@ -101,20 +102,30 @@ const CheckAttendees = ({ registerId }: Props) => {
                 <th className="border p-2">Email</th>
                 <th className="border p-2">Cell Number</th>
                 <th className="border p-2">Status</th>
-                <th className="border p-2">Time</th>
+                
               </tr>
             </thead>
 
             <tbody>
-              {attendees.map((a, index) => (
-                <tr key={index} className="hover:bg-gray-50">
+              {attendees.map((a, i) => (
+                <tr key={i}>
                   <td className="border p-2">{a.fullName}</td>
                   <td className="border p-2">{a.companyName}</td>
                   <td className="border p-2">{a.region}</td>
                   <td className="border p-2">{a.email}</td>
                   <td className="border p-2">{a.cellNumber}</td>
-                  <td className="border p-2">{a.status}</td>
-                  <td className="border p-2">{a.time}</td>
+
+                  {/* STATUS FIX */}
+                  <td className="border p-2">
+                    {a.status === "COUNTING" ? (
+                  <AttendanceStatusTimer
+                    attendeeId={a.id}
+                    durationMinutes={60}
+                  />
+                ) : (
+                  a.status
+                )}
+                  </td>
                 </tr>
               ))}
             </tbody>

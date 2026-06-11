@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import CheckAttendees from "./checkAttendees";
-import { registerVersion } from "firebase/app";
-import { formatDate } from "@/app/lib/formatDate";
+;
 
 type Attendee = {
   name: string;
@@ -27,10 +26,13 @@ export default function AttendanceRegister() {
 
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
- const [selectedRegisterId, setSelectedRegisterId] = useState<string | null>(null);
+  const [selectedRegisterId, setSelectedRegisterId] = useState<string | null>(
+    null,
+  );
 
   const [selectedRegister, setSelectedRegister] =
     useState<AttendanceRegister | null>(null);
+  const [eventDuration, setEventDuration] = useState(1);
 
   /**
    * LOAD REGISTERS FROM FIREBASE
@@ -64,6 +66,7 @@ export default function AttendanceRegister() {
         body: JSON.stringify({
           name,
           location,
+          eventDuration,
         }),
       });
 
@@ -121,8 +124,8 @@ export default function AttendanceRegister() {
    * VIEW ATTENDEEs
    */
   const handleViewAttendees = (registerId: string) => {
-  setSelectedRegisterId(registerId);
-};
+    setSelectedRegisterId(registerId);
+  };
 
   return (
     <div className="p-6">
@@ -142,6 +145,16 @@ export default function AttendanceRegister() {
             placeholder="Event Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            className="border p-2 w-full mb-3"
+          />
+
+          <input
+            type="number"
+            min={1}
+            max={8}
+            value={eventDuration}
+            onChange={(e) => setEventDuration(Number(e.target.value))}
+            placeholder="Event Duration (1–8 hours)"
             className="border p-2 w-full mb-3"
           />
 
@@ -184,10 +197,6 @@ export default function AttendanceRegister() {
 
             <p className="text-xs mt-2">📍 {reg.location}</p>
 
-            <p className="mt-2 text-blue-600">
-              Attendees: {reg.attendees?.length ?? 0}
-            </p>
-
             {/* QR CODE + LINK */}
             {reg.link && (
               <div className="mt-3 flex flex-col items-start">
@@ -227,22 +236,19 @@ export default function AttendanceRegister() {
       </div>
 
       {selectedRegisterId && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-    
-    <div className="relative w-full max-w-4xl rounded-2xl bg-white p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-4xl rounded-2xl bg-white p-6 shadow-2xl">
+            <button
+              onClick={() => setSelectedRegisterId(null)}
+              className="absolute right-4 top-4 text-xl text-gray-500 hover:text-black"
+            >
+              ✕
+            </button>
 
-      <button
-        onClick={() => setSelectedRegisterId(null)}
-        className="absolute right-4 top-4 text-xl text-gray-500 hover:text-black"
-      >
-        ✕
-      </button>
-
-      <CheckAttendees registerId={selectedRegisterId}  />
-
-    </div>
-  </div>
-)}
+            <CheckAttendees registerId={selectedRegisterId} name="John Doe" date="2023-10-15" />
+          </div>
+        </div>
+      )}
 
       {/* MODAL */}
       {selectedRegister && (
