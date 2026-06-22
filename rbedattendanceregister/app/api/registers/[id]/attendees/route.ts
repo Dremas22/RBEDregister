@@ -2,16 +2,40 @@ import { adminDb } from "@/app/lib/firebase-admin";
 
 export async function POST(req: Request, context: any) {
   try {
-    // ✅ FIX: await params (Next.js 16 requirement)
     const { id } = await context.params;
 
     const body = await req.json();
 
-    const registerRef = adminDb.collection("registers").doc(id);
-    const registerDoc = await registerRef.get();
+    // ✅ Normalize email (critical)
+    const email = body.email?.trim().toLowerCase();
 
-    if (!registerDoc.exists) {
-      return Response.json({ error: "Register not found" }, { status: 404 });
+    if (!email) {
+      return Response.json(
+        { error: "Email is required" },
+        { status: 400 }
+      );
+    }
+
+    // 🔥 FIX: deterministic ID (prevents duplicates permanently)
+    const attendeeId = `${id}_${email}`;
+
+    const attendeeRef = adminDb
+      .collection("attendees")
+      .doc(attendeeId);
+
+    const existing = await attendeeRef.get();
+
+    if (existing.exists) {
+      return Response.json(
+        {
+          error: "EMAIL_EXISTS",
+          message:
+            "This email is already registered for this event",
+          attendeeId,
+          attendee: existing.data(),
+        },
+        { status: 409 }
+      );
     }
 
     const attendee = {
@@ -19,26 +43,30 @@ export async function POST(req: Request, context: any) {
       fullName: body.fullName,
       companyName: body.companyName,
       region: body.region,
-      email: body.email,
+      email,
       cellNumber: body.cellNumber,
       time: new Date().toLocaleTimeString(),
       createdAt: new Date().toISOString(),
       attendedMinutes: 0,
       status: "COUNTING",
       graceMinutes: 5,
-
       isInsideLocation: true,
     };
 
-    const docRef = await adminDb.collection("attendees").add(attendee);
+    await attendeeRef.set(attendee);
 
     return Response.json({
       success: true,
-      id: docRef.id,
+      id: attendeeId,
       attendee,
     });
   } catch (error) {
-    return Response.json({ error: "Failed to save attendee" }, { status: 500 });
+    console.error("POST_ATTENDEE_ERROR", error);
+
+    return Response.json(
+      { error: "Failed to save attendee" },
+      { status: 500 }
+    );
   }
 }
 
