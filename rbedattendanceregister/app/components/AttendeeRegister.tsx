@@ -33,6 +33,7 @@ export default function AttendeesRegistered({ registerId, name }: Props) {
     name: string;
     date: string;
     location: string;
+    eventDuration: number;
   } | null>(null);
 
   const [formData, setFormData] = useState({
@@ -44,7 +45,7 @@ export default function AttendeesRegistered({ registerId, name }: Props) {
   });
 
   const [duplicateEmail, setDuplicateEmail] = useState<string | null>(null);
-const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const isValidEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -78,6 +79,7 @@ const timeoutRef = useRef<NodeJS.Timeout | null>(null);
         name: data.name,
         date: data.date,
         location: data.location,
+        eventDuration: data.eventDuration,
       });
     } catch (error) {
       console.log("Fetch error:", error);
@@ -92,63 +94,60 @@ const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     });
 
   const saveAttendeeToFirestore = async () => {
-  const attendee = {
-    fullName: formData.fullName,
-    companyName: formData.companyName,
-    region: formData.region,
-    email: formData.email.trim().toLowerCase(),
-    cellNumber: formData.cellNumber,
-  };
+    const attendee = {
+      fullName: formData.fullName,
+      companyName: formData.companyName,
+      region: formData.region,
+      email: formData.email.trim().toLowerCase(),
+      cellNumber: formData.cellNumber,
+    };
 
-  const res = await fetch(
-    `/api/registers/${registerId}/attendees`,
-    {
+    const res = await fetch(`/api/registers/${registerId}/attendees`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(attendee),
+    });
+
+    const data = await res.json();
+
+    // 🔴 HANDLE DUPLICATE FIRST (STOP EVERYTHING)
+    if (res.status === 409) {
+      setDuplicateEmail(attendee.email);
+
+      // clear previous timer if exists
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        setDuplicateEmail(null);
+      }, 5000);
+
+      await fetchAttendees();
+
+      setShowForm(false);
+      setShowTable(true);
+
+      return false;
     }
-  );
 
-  const data = await res.json();
+    if (!res.ok) {
+      alert(data?.error || "Failed to save attendee");
+      return false;
+    }
 
-  // 🔴 HANDLE DUPLICATE FIRST (STOP EVERYTHING)
-  if (res.status === 409) {
-  setDuplicateEmail(attendee.email);
-
-  // clear previous timer if exists
-  if (timeoutRef.current) {
-    clearTimeout(timeoutRef.current);
-  }
-
-  timeoutRef.current = setTimeout(() => {
+    // ✅ SUCCESS PATH ONLY
     setDuplicateEmail(null);
-  }, 5000);
 
-  await fetchAttendees();
+    await fetchAttendees();
 
-  setShowForm(false);
-  setShowTable(true);
+    setShowForm(false);
+    setShowTable(true);
 
-  return false;
-}
-
-  if (!res.ok) {
-    alert(data?.error || "Failed to save attendee");
-    return false;
-  }
-
-  // ✅ SUCCESS PATH ONLY
-  setDuplicateEmail(null);
-
-  await fetchAttendees();
-
-  setShowForm(false);
-  setShowTable(true);
-
-  return true;
-};
+    return true;
+  };
 
   const handleSave = async () => {
     try {
@@ -374,7 +373,11 @@ const timeoutRef = useRef<NodeJS.Timeout | null>(null);
                       {a.status === "COUNTING" ? (
                         <AttendanceStatusTimer
                           attendeeId={a.id}
-                          durationMinutes={60}
+                          durationMinutes={
+                            registerInfo?.eventDuration
+                              ? (registerInfo.eventDuration * 60) / 2
+                              : 60
+                          }
                         />
                       ) : (
                         a.status
