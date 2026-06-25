@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import AttendanceStatusTimer from "./AttendeeStatusTimer";
+import Image from "next/image";
 
 type Attendee = {
   id: string;
@@ -65,6 +65,16 @@ const CheckAttendees = ({ registerId }: Props) => {
   return (
     <div className="p-2">
       <div className="flex items-center  gap-4 mb-6">
+        <div className="shrink-0">
+          <Image
+            src="/images/rbedlogo.png"
+            alt="RBED Logo"
+            width={250}
+            height={250}
+            priority
+            className="object-contain w-28 md:w-36 lg:w-44 h-auto"
+          />
+        </div>
         <h1 style={{ fontSize: "26px" }} className="font-bold text-blue-600">
           {registerInfo?.name || "Loading event..."}
         </h1>
@@ -102,7 +112,6 @@ const CheckAttendees = ({ registerId }: Props) => {
                 <th className="border p-2">Email</th>
                 <th className="border p-2">Cell Number</th>
                 <th className="border p-2">Status</th>
-                
               </tr>
             </thead>
 
