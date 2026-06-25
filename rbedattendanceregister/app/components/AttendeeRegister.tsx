@@ -20,7 +20,7 @@ type Attendee = {
   email: string;
   cellNumber: string;
   status: string;
-  time: string;
+  registeredAt: number;
 };
 
 export default function AttendeesRegistered({ registerId, name }: Props) {
@@ -373,6 +373,7 @@ export default function AttendeesRegistered({ registerId, name }: Props) {
                       {a.status === "COUNTING" ? (
                         <AttendanceStatusTimer
                           attendeeId={a.id}
+                          registeredAt={a.registeredAt}
                           durationMinutes={
                             registerInfo?.eventDuration
                               ? (registerInfo.eventDuration * 60) / 2

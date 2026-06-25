@@ -114,18 +114,7 @@ const CheckAttendees = ({ registerId }: Props) => {
                   <td className="border p-2">{a.region}</td>
                   <td className="border p-2">{a.email}</td>
                   <td className="border p-2">{a.cellNumber}</td>
-
-                  {/* STATUS FIX */}
-                  <td className="border p-2">
-                    {a.status === "COUNTING" ? (
-                  <AttendanceStatusTimer
-                    attendeeId={a.id}
-                    durationMinutes={60}
-                  />
-                ) : (
-                  a.status
-                )}
-                  </td>
+                  <td className="border p-2">{a.status}</td>
                 </tr>
               ))}
             </tbody>

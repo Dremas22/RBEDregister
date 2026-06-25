@@ -49,8 +49,8 @@ export async function POST(req: Request, context: any) {
       createdAt: new Date().toISOString(),
       attendedMinutes: 0,
       status: "COUNTING",
-      graceMinutes: 5,
-      isInsideLocation: true,
+      registeredAt: Date.now(),
+      
     };
 
     await attendeeRef.set(attendee);

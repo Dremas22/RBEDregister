@@ -5,22 +5,29 @@ export async function PATCH(
   context: any
 ) {
   try {
-    const { id } = await context.params;
+    const { id } = context.params;
 
     await adminDb
       .collection("attendees")
       .doc(id)
       .update({
         status: "PRESENT",
+        updatedAt: new Date().toISOString(),
       });
 
     return Response.json({
       success: true,
     });
   } catch (error) {
+    console.error(error);
+
     return Response.json(
-      { error: "Failed to update status" },
-      { status: 500 }
+      {
+        error: "Failed to update status",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }

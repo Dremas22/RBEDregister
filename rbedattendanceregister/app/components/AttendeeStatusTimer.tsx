@@ -4,31 +4,45 @@ import { useEffect, useState } from "react";
 
 type Props = {
   attendeeId: string;
+  registeredAt: number;
   durationMinutes: number;
 };
 
 export default function AttendanceStatusTimer({
   attendeeId,
+  registeredAt,
   durationMinutes,
 }: Props) {
+  const calculateRemaining = () => {
+    const elapsedMinutes = Math.floor(
+      (Date.now() - registeredAt) / 60000
+    );
+
+    return Math.max(
+      durationMinutes - elapsedMinutes,
+      0
+    );
+  };
+
   const [remainingMinutes, setRemainingMinutes] =
-    useState(durationMinutes);
+    useState(calculateRemaining());
 
   useEffect(() => {
     const interval = setInterval(async () => {
-      setRemainingMinutes((prev) => {
-        if (prev <= 1) {
-          fetch(`/api/attendees/${attendeeId}/present`, {
+      const remaining = calculateRemaining();
+
+      setRemainingMinutes(remaining);
+
+      if (remaining <= 0) {
+        await fetch(
+          `/api/registers/${attendeeId}/present`,
+          {
             method: "PATCH",
-          });
+          }
+        );
 
-          clearInterval(interval);
-
-          return 0;
-        }
-
-        return prev - 1;
-      });
+        clearInterval(interval);
+      }
     }, 60000);
 
     return () => clearInterval(interval);
