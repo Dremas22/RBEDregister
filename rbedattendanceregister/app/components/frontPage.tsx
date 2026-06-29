@@ -27,7 +27,7 @@ const FrontPage: React.FC = () => {
 
           {/* Heading */}
           <div className="text-left p-4">
-            <h2 className="text-2xl md:text-xl lg:text-2xl font-bold text-gray-900 mt-10">
+            <h2 className="text-2xl md:text-xl lg:text-2xl font-bold text-blue-600 mt-10">
               Attendance Register
             </h2>
 

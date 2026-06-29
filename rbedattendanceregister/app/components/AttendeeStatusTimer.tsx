@@ -35,7 +35,7 @@ export default function AttendanceStatusTimer({
 
       if (remaining <= 0) {
         await fetch(
-          `/api/attendees/${attendeeId}/present`,
+          `/api/registers/${attendeeId}/present`,
           {
             method: "PATCH",
           }

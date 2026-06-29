@@ -248,7 +248,7 @@ export default function AttendeesRegistered({ registerId, name }: Props) {
             </div>
 
             <div className="flex items-center gap-4 mb-6">
-              <h1 style={{ fontSize: "26px" }} className="text-5xl font-bold">
+              <h1 style={{ fontSize: "26px" }} className="font-bold text-blue-600">
                 {registerInfo?.name || "Loading event..."}
               </h1>
 
