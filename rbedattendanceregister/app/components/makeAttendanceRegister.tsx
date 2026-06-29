@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import CheckAttendees from "./checkAttendees";
+import { Copy } from "lucide-react";
+
 type Attendee = {
   name: string;
   time: string;
@@ -24,16 +26,16 @@ export default function AttendanceRegister() {
 
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
-  const [selectedRegisterId, setSelectedRegisterId] = useState<string | null>(
-    null,
-  );
-
-  const [selectedRegister, setSelectedRegister] =
-    useState<AttendanceRegister | null>(null);
   const [eventDuration, setEventDuration] = useState(1);
 
+  const [selectedRegisterId, setSelectedRegisterId] = useState<string | null>(null);
+
+  // QR MODAL STATE
+  const [selectedQRRegister, setSelectedQRRegister] =
+    useState<AttendanceRegister | null>(null);
+
   /**
-   * LOAD REGISTERS FROM FIREBASE
+   * LOAD REGISTERS
    */
   useEffect(() => {
     const fetchRegisters = async () => {
@@ -58,9 +60,7 @@ export default function AttendanceRegister() {
     try {
       const res = await fetch("/api/registers", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
           location,
@@ -86,12 +86,9 @@ export default function AttendanceRegister() {
       console.log(err);
     }
   };
-  /**
- SelectedRegisterId(registerId);
-};
 
   /**
-   * DELETE (LOCAL ONLY)
+   * DELETE REGISTER
    */
   const handleDelete = async (id: string) => {
     try {
@@ -99,30 +96,24 @@ export default function AttendanceRegister() {
         method: "DELETE",
       });
 
-      const data = await res.json();
+      if (!res.ok) return;
 
-      if (!res.ok) {
-        console.log(data.error || "Failed to delete register");
-        return;
-      }
-
-      // REMOVE FROM UI
       setRegisters((prev) => prev.filter((r) => r.id !== id));
 
-      // CLOSE MODAL IF OPEN
-      if (selectedRegister?.id === id) {
-        setSelectedRegister(null);
+      if (selectedQRRegister?.id === id) {
+        setSelectedQRRegister(null);
       }
     } catch (error) {
       console.log("Delete error:", error);
     }
   };
 
-  /**
-   * VIEW ATTENDEEs
-   */
   const handleViewAttendees = (registerId: string) => {
     setSelectedRegisterId(registerId);
+  };
+
+  const handleCopy = (link: string) => {
+    navigator.clipboard.writeText(link);
   };
 
   return (
@@ -139,41 +130,38 @@ export default function AttendanceRegister() {
       {showForm && (
         <div className="mt-4 p-4 border rounded bg-white shadow">
           <input
-            type="text"
+            className="border p-2 w-full mb-3"
             placeholder="Event Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
+          />
+
+          <input
             className="border p-2 w-full mb-3"
+            placeholder="Location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
           />
 
           <input
             type="number"
             min={1}
             max={8}
+            className="border p-2 w-full mb-3"
             value={eventDuration}
             onChange={(e) => setEventDuration(Number(e.target.value))}
-            placeholder="Event Duration (1–8 hours)"
-            className="border p-2 w-full mb-3"
-          />
-
-          <input
-            type="text"
-            placeholder="Location"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="border p-2 w-full mb-3"
           />
 
           <button
             onClick={handleSave}
-            className="bg-green-600 text-white px-4 py-2 rounded cursor-pointer"
+            className="bg-green-600 text-white px-4 py-2 rounded"
           >
             Save Register
           </button>
 
           <button
             onClick={() => setShowForm(false)}
-            className="ml-2 bg-gray-600 text-white px-4 py-2 rounded cursor-pointer"
+            className="ml-2 bg-gray-600 text-white px-4 py-2 rounded"
           >
             Cancel
           </button>
@@ -189,26 +177,31 @@ export default function AttendanceRegister() {
           >
             <h2 className="font-bold">{reg.name}</h2>
 
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-[#0047b7] font-bold">
               {new Date(reg.date).toLocaleDateString()}
             </p>
 
             <p className="text-xs mt-2">📍 {reg.location}</p>
 
-            {/* QR CODE + LINK */}
+            {/* QR CODE */}
             {reg.link && (
               <div className="mt-3 flex flex-col items-start">
-                <QRCode value={reg.link} size={80} />
+                <div
+                  onClick={() => setSelectedQRRegister(reg)}
+                  className="cursor-pointer"
+                >
+                  <QRCode value={reg.link} size={80} />
+                </div>
 
                 <p className="text-xs mt-2 text-gray-500 break-all">
                   {reg.link}
                 </p>
 
                 <button
-                  onClick={() => navigator.clipboard.writeText(reg.link!)}
-                  className="text-xs mt-2 bg-gray-400 px-2 py-1 rounded cursor-pointer cursor-pointer"
+                  onClick={() => handleCopy(reg.link!)}
+                  className="flex items-center gap-1 text-xs mt-2 bg-gray-400 px-2 py-1 rounded"
                 >
-                  Copy Link
+                  <Copy size={14} /> Copy Link
                 </button>
               </div>
             )}
@@ -217,7 +210,7 @@ export default function AttendanceRegister() {
             <div className="flex gap-2 mt-3">
               <button
                 onClick={() => handleViewAttendees(reg.id)}
-                className="bg-[#0d3b66] text-white px-3 py-1 text-sm rounded-md cursor-pointer"
+                className="bg-[#0047b7] text-white px-3 py-1 text-sm rounded-md cursor-pointer"
               >
                 View Attendees
               </button>
@@ -233,63 +226,71 @@ export default function AttendanceRegister() {
         ))}
       </div>
 
+      {/* ATTENDEES MODAL */}
       {selectedRegisterId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="relative w-full max-w-4xl rounded-2xl bg-white p-6 shadow-2xl">
             <button
               onClick={() => setSelectedRegisterId(null)}
-              className="absolute right-4 top-4 text-xl text-gray-500 hover:text-black"
+              className="absolute right-4 top-4 text-xl text-gray-500"
             >
               ✕
             </button>
 
-            <CheckAttendees
-              registerId={selectedRegisterId}
-              name="John Doe"
-              date="2023-10-15"
-            />
+            <CheckAttendees registerId={selectedRegisterId} name={"Joe Doe"} date={"2023-10-15"}/>
           </div>
         </div>
       )}
 
-      {/* MODAL */}
-      {selectedRegister && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+      {/* QR OVERLAY */}
+      {selectedQRRegister && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-6">
+          <div className="relative bg-white w-full max-w-2xl rounded-2xl p-6">
+
+            {/* CLOSE */}
             <button
-              onClick={() => setSelectedRegister(null)}
-              className="absolute right-4 top-4 text-xl text-gray-500 hover:text-black"
+              onClick={() => setSelectedQRRegister(null)}
+              className="absolute top-4 right-4 text-xl"
             >
               ✕
             </button>
 
-            <h2 className="text-2xl font-bold">{selectedRegister.name}</h2>
+            {/* PRINT */}
+            <button
+              onClick={() => window.print()}
+              className="absolute top-4 left-4 bg-gray-200 px-3 py-1 rounded"
+            >
+              🖨 Print
+            </button>
 
-            <p className="mt-1 text-sm text-gray-500">
-              📍 {selectedRegister.location}
+            {/* HEADER */}
+            <h2 className="font-bold text-2xl text-center mt-6">
+              {selectedQRRegister.name}
+            </h2>
+
+            <p className="text-sm text-gray-500 text-center">
+              {new Date(selectedQRRegister.date).toLocaleDateString()}
             </p>
 
-            <p className="mb-6 text-sm text-gray-500">
-              {new Date(selectedRegister.date).toLocaleDateString()}
+            {/* QR */}
+            <div className="flex justify-center mt-6">
+              <QRCode value={selectedQRRegister.link || ""} size={300} />
+            </div>
+
+            {/* LINK */}
+            <p className="text-green-600 text-lg text-center mt-4 break-all">
+              {selectedQRRegister.link}
             </p>
 
-            {!selectedRegister.attendees ||
-            selectedRegister.attendees.length === 0 ? (
-              <div className="rounded-lg border border-dashed bg-gray-50 p-6 text-center">
-                <p className="text-lg italic text-gray-500">
-                  No one checked in yet
-                </p>
-              </div>
-            ) : (
-              <ul className="max-h-[300px] space-y-2 overflow-y-auto">
-                {selectedRegister.attendees.map((a, index) => (
-                  <li key={index} className="rounded-lg border bg-gray-50 p-3">
-                    <p className="font-medium">{a.name}</p>
-                    <p className="text-sm text-gray-500">{a.time}</p>
-                  </li>
-                ))}
-              </ul>
-            )}
+            {/* COPY */}
+            <div className="flex justify-center mt-3">
+              <button
+                onClick={() => handleCopy(selectedQRRegister.link!)}
+                className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded"
+              >
+                <Copy size={16} /> Copy Link
+              </button>
+            </div>
           </div>
         </div>
       )}

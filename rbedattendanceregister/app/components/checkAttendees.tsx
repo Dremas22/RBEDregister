@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 type Attendee = {
   id: string;
@@ -49,7 +53,6 @@ const CheckAttendees = ({ registerId }: Props) => {
 
       setAttendees(data.attendees || []);
 
-      // 🔥 THIS IS THE MISSING PIECE
       setRegisterInfo({
         name: data.name,
         date: data.date,
@@ -62,9 +65,105 @@ const CheckAttendees = ({ registerId }: Props) => {
     }
   };
 
+  // =========================
+  // 📊 EXPORT TO EXCEL
+  // =========================
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(attendees);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Attendees");
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    const data = new Blob([excelBuffer], {
+      type: "application/octet-stream",
+    });
+
+    saveAs(data, `${registerInfo?.name || "attendees"}-report.xlsx`);
+  };
+
+  // =========================
+  // 🔵 SHARE FUNCTION
+  // =========================
+  const shareRegister = async () => {
+    const url = window.location.href;
+
+    const shareText = `Check out this event register: ${registerInfo?.name}`;
+
+    // Mobile / modern browsers
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: registerInfo?.name,
+          text: shareText,
+          url,
+        });
+        return;
+      } catch (err) {
+        console.log("Share cancelled");
+      }
+    }
+
+    // Fallback (WhatsApp / Email)
+    const whatsapp = `https://wa.me/?text=${encodeURIComponent(
+      shareText + " " + url,
+    )}`;
+
+    window.open(whatsapp, "_blank");
+  };
+
+  // =========================
+  // ⬇️ DOWNLOAD JSON (optional)
+  // =========================
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+
+    // Title
+    doc.setFontSize(16);
+    doc.text(registerInfo?.name || "Attendees Report", 14, 15);
+
+    // Date
+    doc.setFontSize(11);
+    doc.text(
+      registerInfo?.date
+        ? new Date(registerInfo.date).toLocaleDateString()
+        : "",
+      14,
+      22,
+    );
+
+    // Table data
+    const tableData = attendees.map((a) => [
+      a.fullName,
+      a.companyName,
+      a.region,
+      a.email,
+      a.cellNumber,
+      a.status,
+    ]);
+
+    autoTable(doc, {
+      startY: 30,
+      head: [
+        ["Full Name", "Company", "Region", "Email", "Cell Number", "Status"],
+      ],
+      body: tableData,
+      styles: {
+        fontSize: 9,
+      },
+    });
+
+    doc.save(`${registerInfo?.name || "attendees"}.pdf`);
+  };
+
   return (
     <div className="p-2">
-      <div className="flex items-center  gap-4 mb-6">
+      {/* HEADER */}
+      <div className="flex items-center gap-4 mb-6">
         <div className="shrink-0">
           <Image
             src="/images/rbedlogo.png"
@@ -75,25 +174,49 @@ const CheckAttendees = ({ registerId }: Props) => {
             className="object-contain w-28 md:w-36 lg:w-44 h-auto"
           />
         </div>
-        <h1 style={{ fontSize: "26px" }} className="font-bold text-blue-600">
+
+        <h1 className="font-bold text-blue-600 text-[26px]">
           {registerInfo?.name || "Loading event..."}
         </h1>
 
-        <p style={{ fontSize: "24px" }} className="font-bold text-blue-600">
+        <p className="font-bold text-blue-600 text-[24px]">
           {registerInfo?.date
             ? new Date(registerInfo.date).toLocaleDateString()
             : ""}
         </p>
       </div>
-      {/* LOADING STATE */}
+
+      {/* ACTION BUTTONS */}
+      <div className="flex gap-3 mb-4">
+        <button
+          onClick={shareRegister}
+          className="bg-blue-600 text-white px-4 py-2 rounded-md cursor-pointer"
+        >
+          Share
+        </button>
+
+        <button
+          onClick={exportToExcel}
+          className="bg-green-600 text-white px-4 py-2 rounded-md cursor-pointer"
+        >
+          Export Excel
+        </button>
+
+        <button
+          onClick={downloadPDF}
+          className="bg-gray-600 text-white px-4 py-2 rounded-md cursor-pointer"
+        >
+          Download PDF
+        </button>
+      </div>
+
+      {/* STATES */}
       {loading && <div className="text-gray-500">Loading attendees...</div>}
 
-      {/* ERROR STATE */}
       {error && (
         <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>
       )}
 
-      {/* EMPTY STATE */}
       {!loading && !error && attendees.length === 0 && (
         <div className="text-gray-500 italic">
           No attendees have registered yet.
