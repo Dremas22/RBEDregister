@@ -175,7 +175,7 @@ export default function AttendanceRegister() {
             key={reg.id}
             className="p-4 border-4 border-blue-500 rounded shadow hover:shadow-md"
           >
-            <h2 className="font-bold">{reg.name}</h2>
+            <h2 className="font-bold text-black">{reg.name}</h2>
 
             <p className="text-sm text-[#0047b7] font-bold">
               {new Date(reg.date).toLocaleDateString()}
