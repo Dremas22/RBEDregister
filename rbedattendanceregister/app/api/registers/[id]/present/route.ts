@@ -5,7 +5,7 @@ export async function PATCH(
   context: any
 ) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
 
     await adminDb
       .collection("attendees")
@@ -19,7 +19,7 @@ export async function PATCH(
       success: true,
     });
   } catch (error) {
-    console.error(error);
+    console.error("PATCH_PRESENT_ERROR:", error);
 
     return Response.json(
       {

@@ -27,26 +27,35 @@ export default function AttendanceStatusTimer({
   const [remainingMinutes, setRemainingMinutes] =
     useState(calculateRemaining());
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      const remaining = calculateRemaining();
+ useEffect(() => {
+  const interval = setInterval(async () => {
+    const remaining = calculateRemaining();
 
-      setRemainingMinutes(remaining);
+    setRemainingMinutes(remaining);
 
-      if (remaining <= 0) {
-        await fetch(
+    if (remaining <= 0) {
+      try {
+        const res = await fetch(
           `/api/registers/${attendeeId}/present`,
           {
             method: "PATCH",
           }
         );
 
-        clearInterval(interval);
+        if (res.ok) {
+          setRemainingMinutes(0);
+          clearInterval(interval);
+        } else {
+          console.error("Failed to update attendee status");
+        }
+      } catch (error) {
+        console.error("Status update failed:", error);
       }
-    }, 60000);
+    }
+  }, 60000);
 
-    return () => clearInterval(interval);
-  }, [attendeeId]);
+  return () => clearInterval(interval);
+}, [attendeeId]);
 
   if (remainingMinutes <= 0) {
     return (
