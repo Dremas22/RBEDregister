@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import CheckAttendees from "./checkAttendees";
-;
-
 type Attendee = {
   name: string;
   time: string;
@@ -187,7 +185,7 @@ export default function AttendanceRegister() {
         {registers.slice(0, 20).map((reg) => (
           <div
             key={reg.id}
-            className="p-4 border rounded shadow hover:shadow-md"
+            className="p-4 border-4 border-blue-500 rounded shadow hover:shadow-md"
           >
             <h2 className="font-bold">{reg.name}</h2>
 
@@ -219,14 +217,14 @@ export default function AttendanceRegister() {
             <div className="flex gap-2 mt-3">
               <button
                 onClick={() => handleViewAttendees(reg.id)}
-                className="bg-gray-800 text-white px-3 py-1 text-sm rounded cursor-pointer"
+                className="bg-[#0d3b66] text-white px-3 py-1 text-sm rounded-md cursor-pointer"
               >
                 View Attendees
               </button>
 
               <button
                 onClick={() => handleDelete(reg.id)}
-                className="bg-red-600 text-white px-3 py-1 text-sm rounded cursor-pointer"
+                className="bg-yellow-400 text-red-800 px-3 py-1 text-sm rounded cursor-pointer"
               >
                 Delete
               </button>
@@ -245,7 +243,11 @@ export default function AttendanceRegister() {
               ✕
             </button>
 
-            <CheckAttendees registerId={selectedRegisterId} name="John Doe" date="2023-10-15" />
+            <CheckAttendees
+              registerId={selectedRegisterId}
+              name="John Doe"
+              date="2023-10-15"
+            />
           </div>
         </div>
       )}
