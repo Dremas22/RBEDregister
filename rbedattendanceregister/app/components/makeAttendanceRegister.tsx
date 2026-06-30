@@ -258,7 +258,7 @@ export default function AttendanceRegister() {
             {/* PRINT */}
             <button
               onClick={() => window.print()}
-              className="absolute top-4 left-4 bg-gray-200 px-3 py-1 rounded"
+              className="absolute top-4 left-4 bg-gray-200 px-3 py-1 rounded cursor-pointer"
             >
               🖨 Print
             </button>

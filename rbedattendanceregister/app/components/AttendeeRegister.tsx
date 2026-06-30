@@ -308,7 +308,7 @@ export default function AttendeesRegistered({ registerId, name }: Props) {
 
             <button
               onClick={handleSave}
-              className="bg-blue-600 text-white p-3 rounded"
+              className="bg-blue-600 text-white p-3 rounded cursor-pointer"
             >
               Save Attendance
             </button>

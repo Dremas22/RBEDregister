@@ -46,7 +46,7 @@ export const RBED_LOCATIONS = [
   },
   {
     name: "Home",
-    lat: -25.568711062561576,
-    lng: 27.159202914709365,
+    lat: -25.664917,
+    lng:  27.237209,
   },
 ];
