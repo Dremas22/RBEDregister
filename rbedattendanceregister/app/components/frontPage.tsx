@@ -3,6 +3,7 @@
 import React from "react";
 import AttendanceRegister from "./makeAttendanceRegister";
 import Image from "next/image";
+import Footer  from "./footer";
 
 const FrontPage: React.FC = () => {
   return (
@@ -39,9 +40,11 @@ const FrontPage: React.FC = () => {
         {/* Register Section */}
         <div className="w-full">
           <AttendanceRegister />
+      
         </div>
 
       </div>
+      
     </div>
   );
 };

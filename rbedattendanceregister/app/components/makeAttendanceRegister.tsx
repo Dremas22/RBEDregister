@@ -154,14 +154,14 @@ export default function AttendanceRegister() {
 
           <button
             onClick={handleSave}
-            className="bg-green-600 text-white px-4 py-2 rounded"
+            className="bg-green-600 text-white px-4 py-2 rounded cursor-pointer"
           >
             Save Register
           </button>
 
           <button
             onClick={() => setShowForm(false)}
-            className="ml-2 bg-gray-600 text-white px-4 py-2 rounded"
+            className="ml-2 bg-gray-600 text-white px-4 py-2 rounded cursor-pointer"
           >
             Cancel
           </button>
@@ -199,7 +199,7 @@ export default function AttendanceRegister() {
 
                 <button
                   onClick={() => handleCopy(reg.link!)}
-                  className="flex items-center gap-1 text-xs mt-2 bg-gray-400 px-2 py-1 rounded"
+                  className="flex items-center gap-1 text-xs mt-2 bg-gray-400 px-2 py-1 rounded cursor-pointer"
                 >
                   <Copy size={14} /> Copy Link
                 </button>
@@ -250,7 +250,7 @@ export default function AttendanceRegister() {
             {/* CLOSE */}
             <button
               onClick={() => setSelectedQRRegister(null)}
-              className="absolute top-4 right-4 text-xl"
+              className="absolute top-4 right-4 text-xl cursor-pointer"
             >
               ✕
             </button>
@@ -286,7 +286,7 @@ export default function AttendanceRegister() {
             <div className="flex justify-center mt-3">
               <button
                 onClick={() => handleCopy(selectedQRRegister.link!)}
-                className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded"
+                className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded cursor-pointer"
               >
                 <Copy size={16} /> Copy Link
               </button>

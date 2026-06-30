@@ -1,10 +1,16 @@
-import Image from "next/image";
 import FrontPage from "./components/frontPage";
+import Footer from "./components/footer";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center  bg-zinc-50 font-sans dark:bg-black">
-      <FrontPage />
+    <div className="min-h-screen flex flex-col bg-zinc-50 font-sans dark:bg-black">
+      {/* Main Content */}
+      <main className="flex-1 flex items-center justify-center">
+        <FrontPage />
+      </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
