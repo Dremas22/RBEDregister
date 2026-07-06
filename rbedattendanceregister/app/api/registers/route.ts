@@ -31,9 +31,9 @@ export async function GET() {
 // POST → create register
 export async function POST(req: Request) {
   try {
-    const { name, location, eventDuration } = await req.json();
+    const { name, location, eventDuration, date } = await req.json();
 
-    if (!name || !location || !eventDuration) {
+    if (!name || !location || !eventDuration || !date)  {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
@@ -48,14 +48,14 @@ export async function POST(req: Request) {
       name,
       location,
       eventDuration,
-      date: new Date(),
+      date: new Date(date),
     });
 
     return NextResponse.json({
       id: ref.id,
       name,
       location,
-      date: new Date().toISOString(),
+      date: new Date(date).toISOString(),
       attendees: [],
     });
   } catch (err) {

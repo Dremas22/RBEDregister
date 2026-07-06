@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import CheckAttendees from "./checkAttendees";
-import { Copy } from "lucide-react";
+import { Copy, CloudDownload } from "lucide-react";
+import { toPng } from "html-to-image";
 
 type Attendee = {
   name: string;
@@ -23,12 +24,16 @@ type AttendanceRegister = {
 export default function AttendanceRegister() {
   const [registers, setRegisters] = useState<AttendanceRegister[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [eventDuration, setEventDuration] = useState(1);
+  const [eventDate, setEventDate] = useState("");
 
-  const [selectedRegisterId, setSelectedRegisterId] = useState<string | null>(null);
+  const [selectedRegisterId, setSelectedRegisterId] = useState<string | null>(
+    null,
+  );
 
   // QR MODAL STATE
   const [selectedQRRegister, setSelectedQRRegister] =
@@ -55,7 +60,7 @@ export default function AttendanceRegister() {
    * CREATE REGISTER
    */
   const handleSave = async () => {
-    if (!name.trim() || !location.trim()) return;
+    if (!name.trim() || !location.trim() || !eventDate) return;
 
     try {
       const res = await fetch("/api/registers", {
@@ -65,6 +70,7 @@ export default function AttendanceRegister() {
           name,
           location,
           eventDuration,
+          date: eventDate,
         }),
       });
 
@@ -81,6 +87,7 @@ export default function AttendanceRegister() {
 
       setName("");
       setLocation("");
+      setEventDate("");
       setShowForm(false);
     } catch (err) {
       console.log(err);
@@ -112,8 +119,31 @@ export default function AttendanceRegister() {
     setSelectedRegisterId(registerId);
   };
 
-  const handleCopy = (link: string) => {
-    navigator.clipboard.writeText(link);
+  const handleCopy = async (link: string) => {
+    await navigator.clipboard.writeText(link);
+
+    setCopied(true);
+
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
+  };
+
+  const handleDownloadQR = async () => {
+    const node = document.getElementById("qr-code");
+
+    if (!node || !selectedQRRegister) return;
+
+    try {
+      const dataUrl = await toPng(node);
+
+      const link = document.createElement("a");
+      link.download = `${selectedQRRegister.name}-QR.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (error) {
+      console.error("Failed to download QR code:", error);
+    }
   };
 
   return (
@@ -130,14 +160,21 @@ export default function AttendanceRegister() {
       {showForm && (
         <div className="mt-4 p-4 border rounded bg-white shadow">
           <input
-            className="border p-2 w-full mb-3"
+            className="border text-black p-2 w-full mb-3"
             placeholder="Event Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
 
           <input
-            className="border p-2 w-full mb-3"
+            type="date"
+            className="border text-black p-2 w-full mb-3 cursor-pointer"
+            value={eventDate}
+            onChange={(e) => setEventDate(e.target.value)}
+          />
+
+          <input
+            className="border text-black p-2 w-full mb-3"
             placeholder="Location"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
@@ -199,10 +236,15 @@ export default function AttendanceRegister() {
 
                 <button
                   onClick={() => handleCopy(reg.link!)}
-                  className="flex items-center gap-1 text-xs mt-2 bg-gray-400 px-2 py-1 rounded cursor-pointer"
+                  className="flex items-center gap-1 text-xs font-bold mt-2 bg-[#a7c957] px-2 py-1 rounded cursor-pointer"
                 >
                   <Copy size={14} /> Copy Link
                 </button>
+                {copied && (
+                  <div className="fixed bottom-6 right-6 bg-[#0047b7] text-white px-4 py-2 rounded-lg shadow-lg animate-fade z-50">
+                    ✓ Copied
+                  </div>
+                )}
               </div>
             )}
 
@@ -237,7 +279,11 @@ export default function AttendanceRegister() {
               ✕
             </button>
 
-            <CheckAttendees registerId={selectedRegisterId} name={"Joe Doe"} date={"2023-10-15"}/>
+            <CheckAttendees
+              registerId={selectedRegisterId}
+              name={"Joe Doe"}
+              date={"2023-10-15"}
+            />
           </div>
         </div>
       )}
@@ -246,7 +292,6 @@ export default function AttendanceRegister() {
       {selectedQRRegister && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-6">
           <div className="relative bg-white w-full max-w-2xl rounded-2xl p-6">
-
             {/* CLOSE */}
             <button
               onClick={() => setSelectedQRRegister(null)}
@@ -273,7 +318,7 @@ export default function AttendanceRegister() {
             </p>
 
             {/* QR */}
-            <div className="flex justify-center mt-6">
+            <div id="qr-code" className="flex justify-center mt-6 bg-white p-4">
               <QRCode value={selectedQRRegister.link || ""} size={300} />
             </div>
 
@@ -289,6 +334,13 @@ export default function AttendanceRegister() {
                 className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded cursor-pointer"
               >
                 <Copy size={16} /> Copy Link
+              </button>
+              <button
+                onClick={handleDownloadQR}
+                className="flex items-center gap-2 bg-[#0047b7] text-white px-4 py-2 rounded cursor-pointer ml-3"
+              >
+                <CloudDownload size={16} />
+                Download QR
               </button>
             </div>
           </div>

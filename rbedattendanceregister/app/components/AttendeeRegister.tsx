@@ -267,7 +267,7 @@ export default function AttendeesRegistered({ registerId, name }: Props) {
               onChange={(e) =>
                 setFormData({ ...formData, fullName: e.target.value })
               }
-              className="border p-3 rounded"
+              className="border p-3 rounded text-black"
             />
 
             <input
@@ -276,7 +276,7 @@ export default function AttendeesRegistered({ registerId, name }: Props) {
               onChange={(e) =>
                 setFormData({ ...formData, companyName: e.target.value })
               }
-              className="border p-3 rounded"
+              className="border p-3 rounded text-black"
             />
 
             <input
@@ -285,7 +285,7 @@ export default function AttendeesRegistered({ registerId, name }: Props) {
               onChange={(e) =>
                 setFormData({ ...formData, region: e.target.value })
               }
-              className="border p-3 rounded"
+              className="border p-3 rounded text-black"
             />
 
             <input
@@ -352,7 +352,7 @@ export default function AttendeesRegistered({ registerId, name }: Props) {
           ) : (
             <table className="w-full border">
               <thead>
-                <tr className="bg-gray-100">
+                <tr className="bg-gray-100 text-black font-bold">
                   <th className="border p-2">Name</th>
                   <th className="border p-2">Company</th>
                   <th className="border p-2">Region</th>
@@ -364,7 +364,7 @@ export default function AttendeesRegistered({ registerId, name }: Props) {
 
               <tbody>
                 {attendees.map((a, i) => (
-                  <tr key={i}>
+                  <tr key={i} className="text-black">
                     <td className="border p-2">{a.fullName}</td>
                     <td className="border p-2">{a.companyName}</td>
                     <td className="border p-2">{a.region}</td>
