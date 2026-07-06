@@ -294,7 +294,7 @@ export default function AttendeesRegistered({ registerId, name }: Props) {
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              className="border p-3 rounded"
+              className="border p-3 rounded text-black"
             />
 
             <input
@@ -303,7 +303,7 @@ export default function AttendeesRegistered({ registerId, name }: Props) {
               onChange={(e) =>
                 setFormData({ ...formData, cellNumber: e.target.value })
               }
-              className="border p-3 rounded"
+              className="border p-3 rounded text-black"
             />
 
             <button
