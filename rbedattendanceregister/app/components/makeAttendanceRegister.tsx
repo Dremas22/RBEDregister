@@ -270,11 +270,11 @@ export default function AttendanceRegister() {
 
       {/* ATTENDEES MODAL */}
       {selectedRegisterId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-4xl rounded-2xl bg-white p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm mt-20">
+          <div className="relative rounded-2xl bg-white p-6 shadow-2xl">
             <button
               onClick={() => setSelectedRegisterId(null)}
-              className="absolute right-4 top-4 text-xl text-gray-500"
+              className="absolute right-4 top-4 text-xl text-gray-500 cursor-pointer"
             >
               ✕
             </button>
