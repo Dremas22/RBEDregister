@@ -161,9 +161,9 @@ const CheckAttendees = ({ registerId }: Props) => {
   };
 
   return (
-    <div className="p-2">
+    <div className="p-2 mt-10">
       {/* HEADER */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex flex-col md:flex-row md:items-center gap-2 ">
         <div className="shrink-0">
           <Image
             src="/images/rbedlogo.png"
@@ -175,25 +175,27 @@ const CheckAttendees = ({ registerId }: Props) => {
           />
         </div>
 
-        <h1 className="font-bold text-blue-600 text-[26px]">
-          {registerInfo?.name || "Loading event..."}
-        </h1>
+        <div className="flex-1 flex flex-col md:flex-row md:items-center gap-2">
+          <h1 className="font-bold text-blue-600 text-[26px] ml-20">
+            {registerInfo?.name || "Loading event..."}
+          </h1>
 
-        <p className="font-bold text-blue-600 text-[24px]">
-          {registerInfo?.date
-            ? new Date(registerInfo.date).toLocaleDateString()
-            : ""}
-        </p>
+          <p className="font-bold text-blue-600 text-[24px]">
+            {registerInfo?.date
+              ? new Date(registerInfo.date).toLocaleDateString()
+              : ""}
+          </p>
+        </div>
       </div>
 
       {/* ACTION BUTTONS */}
-      <div className="flex gap-3 mb-4">
-        <button
+      <div className="flex flex-wrap gap-3 mb-4">
+        {/* <button
           onClick={shareRegister}
           className="bg-blue-600 text-white px-4 py-2 rounded-md cursor-pointer"
         >
           Share
-        </button>
+        </button> */}
 
         <button
           onClick={exportToExcel}
@@ -225,33 +227,36 @@ const CheckAttendees = ({ registerId }: Props) => {
 
       {/* TABLE */}
       {!loading && !error && attendees.length > 0 && (
-        <div className="overflow-x-auto mt-4">
-          <table className="w-full border border-gray-300">
-            <thead>
-              <tr className="bg-gray-100 text-left">
-                <th className="border p-2">Full Name</th>
-                <th className="border p-2">Company</th>
-                <th className="border p-2">Region</th>
-                <th className="border p-2">Email</th>
-                <th className="border p-2">Cell Number</th>
-                <th className="border p-2">Status</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {attendees.map((a, i) => (
-                <tr key={i}>
-                  <td className="border p-2">{a.fullName}</td>
-                  <td className="border p-2">{a.companyName}</td>
-                  <td className="border p-2">{a.region}</td>
-                  <td className="border p-2">{a.email}</td>
-                  <td className="border p-2">{a.cellNumber}</td>
-                  <td className="border p-2">{a.status}</td>
+        <div className="relative w-full max-w-6xl max-h-[80vh] 
+        overflow-auto rounded-2xl bg-white p-6 shadow-2xl">
+          
+            <table className="w-full border border-gray-300">
+              <thead>
+                <tr className="bg-gray-100 text-left">
+                  <th className="border p-2">Full Name</th>
+                  <th className="border p-2">Company</th>
+                  <th className="border p-2">Region</th>
+                  <th className="border p-2">Email</th>
+                  <th className="border p-2">Cell Number</th>
+                  <th className="border p-2">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+
+              <tbody>
+                {attendees.map((a, i) => (
+                  <tr key={i}>
+                    <td className="border p-2">{a.fullName}</td>
+                    <td className="border p-2">{a.companyName}</td>
+                    <td className="border p-2">{a.region}</td>
+                    <td className="border p-2">{a.email}</td>
+                    <td className="border p-2">{a.cellNumber}</td>
+                    <td className="border p-2">{a.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        
       )}
     </div>
   );
