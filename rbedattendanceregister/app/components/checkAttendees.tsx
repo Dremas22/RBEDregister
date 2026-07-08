@@ -227,7 +227,7 @@ const CheckAttendees = ({ registerId }: Props) => {
 
       {/* TABLE */}
       {!loading && !error && attendees.length > 0 && (
-        <div className="relative w-full max-w-6xl max-h-[80vh] 
+        <div className="relative w-full max-w-6xl max-h-[70vh] 
         overflow-auto rounded-2xl bg-white p-6 shadow-2xl">
           
             <table className="w-full border border-gray-300">
