@@ -13,7 +13,6 @@ export async function GET() {
       return {
         id: doc.id,
         name: d.name,
-        location: d.location,
         date: formatDate(d.date),
         attendeesCount: d.attendees ? d.attendees.length : 0,
       };
@@ -31,9 +30,9 @@ export async function GET() {
 // POST → create register
 export async function POST(req: Request) {
   try {
-    const { name, location, eventDuration, date } = await req.json();
+    const { name, eventDuration, date } = await req.json();
 
-    if (!name || !location || !eventDuration || !date)  {
+    if (!name || !eventDuration || !date)  {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
@@ -46,7 +45,6 @@ export async function POST(req: Request) {
 
     const ref = await adminDb.collection("registers").add({
       name,
-      location,
       eventDuration,
       date: new Date(date),
     });
@@ -54,7 +52,6 @@ export async function POST(req: Request) {
     return NextResponse.json({
       id: ref.id,
       name,
-      location,
       date: new Date(date).toISOString(),
       attendees: [],
     });

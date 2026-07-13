@@ -16,7 +16,6 @@ type AttendanceRegister = {
   id: string;
   name: string;
   date: string;
-  location: string;
   link?: string;
   attendees: Attendee[];
 };
@@ -27,7 +26,6 @@ export default function AttendanceRegister() {
   const [copied, setCopied] = useState(false);
 
   const [name, setName] = useState("");
-  const [location, setLocation] = useState("");
   const [eventDuration, setEventDuration] = useState(1);
   const [eventDate, setEventDate] = useState("");
 
@@ -60,7 +58,7 @@ export default function AttendanceRegister() {
    * CREATE REGISTER
    */
   const handleSave = async () => {
-    if (!name.trim() || !location.trim() || !eventDate) return;
+    if (!name.trim() || !eventDate) return;
 
     try {
       const res = await fetch("/api/registers", {
@@ -68,7 +66,6 @@ export default function AttendanceRegister() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
-          location,
           eventDuration,
           date: eventDate,
         }),
@@ -86,7 +83,6 @@ export default function AttendanceRegister() {
       setRegisters((prev) => [{ ...data, link }, ...prev]);
 
       setName("");
-      setLocation("");
       setEventDate("");
       setShowForm(false);
     } catch (err) {
@@ -173,13 +169,7 @@ export default function AttendanceRegister() {
             onChange={(e) => setEventDate(e.target.value)}
           />
 
-          <input
-            className="border text-black p-2 w-full mb-3"
-            placeholder="Location"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-          />
-
+          
           <input
             type="number"
             min={1}
@@ -217,8 +207,6 @@ export default function AttendanceRegister() {
             <p className="text-sm text-[#0047b7] font-bold">
               {new Date(reg.date).toLocaleDateString()}
             </p>
-
-            <p className="text-xs mt-2">📍 {reg.location}</p>
 
             {/* QR CODE */}
             {reg.link && (
@@ -309,12 +297,14 @@ export default function AttendanceRegister() {
             </button>
 
             {/* HEADER */}
+            
             <h2 className="font-bold text-2xl text-center mt-6">
+              
               {selectedQRRegister.name}
             </h2>
 
-            <p className="text-sm text-gray-500 text-center">
-              {new Date(selectedQRRegister.date).toLocaleDateString()}
+            <p className="text-xl text-gray-500 font-bold text-center">
+              Attendance Register {new Date(selectedQRRegister.date).toLocaleDateString()}
             </p>
 
             {/* QR */}

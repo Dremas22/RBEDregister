@@ -32,7 +32,6 @@ export default function AttendeesRegistered({ registerId, name }: Props) {
   const [registerInfo, setRegisterInfo] = useState<{
     name: string;
     date: string;
-    location: string;
     eventDuration: number;
   } | null>(null);
 
@@ -78,7 +77,6 @@ export default function AttendeesRegistered({ registerId, name }: Props) {
       setRegisterInfo({
         name: data.name,
         date: data.date,
-        location: data.location,
         eventDuration: data.eventDuration,
       });
     } catch (error) {
@@ -175,51 +173,51 @@ export default function AttendeesRegistered({ registerId, name }: Props) {
         return;
       }
 
-      const position = await getUserLocation();
+      // const position = await getUserLocation();
 
-      const userLocation = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-      };
+      // const userLocation = {
+      //   lat: position.coords.latitude,
+      //   lng: position.coords.longitude,
+      // };
 
-      const eventLocation = RBED_LOCATIONS.find(
-        (l) => l.name === registerInfo?.location,
-      );
+      // const eventLocation = RBED_LOCATIONS.find(
+      //   (l) => l.name === registerInfo?.location,
+      // );
 
-      if (!eventLocation) {
-        alert("Invalid event location");
-        return;
-      }
+      // if (!eventLocation) {
+      //   alert("Invalid event location");
+      //   return;
+      // }
 
-      const allowed = isWithinRadius(userLocation, eventLocation, 500);
+      // const allowed = isWithinRadius(userLocation, eventLocation, 500);
 
-      if (!allowed) {
-        const msg = document.createElement("div");
+      // if (!allowed) {
+      //   const msg = document.createElement("div");
 
-        msg.innerText =
-          "Please go to the required location before registering attendance";
+      //   msg.innerText =
+      //     "Please go to the required location before registering attendance";
 
-        msg.style.position = "fixed";
-        msg.style.bottom = "20px";
-        msg.style.left = "50%";
-        msg.style.transform = "translateX(-50%)";
-        msg.style.background = "red";
-        msg.style.color = "white";
-        msg.style.padding = "10px 20px";
-        msg.style.borderRadius = "8px";
-        msg.style.zIndex = "9999";
-        msg.style.fontWeight = "bold";
+      //   msg.style.position = "fixed";
+      //   msg.style.bottom = "20px";
+      //   msg.style.left = "50%";
+      //   msg.style.transform = "translateX(-50%)";
+      //   msg.style.background = "red";
+      //   msg.style.color = "white";
+      //   msg.style.padding = "10px 20px";
+      //   msg.style.borderRadius = "8px";
+      //   msg.style.zIndex = "9999";
+      //   msg.style.fontWeight = "bold";
 
-        document.body.appendChild(msg);
+      //   document.body.appendChild(msg);
 
-        setTimeout(() => {
-          if (document.body.contains(msg)) {
-            document.body.removeChild(msg);
-          }
-        }, 5000);
+      //   setTimeout(() => {
+      //     if (document.body.contains(msg)) {
+      //       document.body.removeChild(msg);
+      //     }
+      //   }, 5000);
 
-        return;
-      }
+      //   return;
+      // }
 
       // Save attendee
       await saveAttendeeToFirestore();

@@ -34,7 +34,6 @@ export async function GET(req: Request, context: any) {
     return Response.json({
       id: docSnap.id,
       name: data.name,
-      location: data.location,
       eventDuration: data.eventDuration,
       date: formatDate(data.date),
       attendees,
